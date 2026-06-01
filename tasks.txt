@@ -1,5 +1,6 @@
-write code|10|0|0
-remove 1st func|7|0|0
+write code|10|1|1
+remove 1st func|7|1|1
 remove function|5|1|1
-12|2|0|0
+12|2|1|1
+22|2|1|1
 write new func|1|1|1
