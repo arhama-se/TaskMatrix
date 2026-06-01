@@ -1676,6 +1676,31 @@ void openMainMenu()
 		window.draw(titleShadow);
 		window.draw(titleBox);
 		window.draw(title);
+		
+
+// task counter
+auto pq = loadTasks();
+int totalPriority = 0, completedPriority = 0;
+auto copy = pq;
+while (!copy.empty())
+{
+    Task t = copy.top(); copy.pop();
+    totalPriority++;
+    if (t.completed) completedPriority++;
+}
+
+int totalDaily = 0, completedDaily = 0;
+DailyTask* tmp = head;
+while (tmp) { totalDaily++; if (tmp->completed) completedDaily++; tmp = tmp->next; }
+
+Text counter(font);
+counter.setCharacterSize(20);
+counter.setFillColor(Color(40, 40, 40));
+counter.setString("Priority: " + to_string(completedPriority) + "/" + to_string(totalPriority) + " done    Daily: " + to_string(completedDaily) + "/" + to_string(totalDaily) + " done");
+FloatRect cr = counter.getLocalBounds();
+counter.setOrigin({ cr.position.x + cr.size.x / 2.f, cr.position.y + cr.size.y / 2.f });
+counter.setPosition({ 700.f, 280.f });
+window.draw(counter);
 
 		for (int i = 0; i < buttons.size(); i++)
 		{
