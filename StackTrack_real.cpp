@@ -1702,6 +1702,32 @@ counter.setOrigin({ cr.position.x + cr.size.x / 2.f, cr.position.y + cr.size.y /
 counter.setPosition({ 700.f, 280.f });
 window.draw(counter);
 
+// progress bar
+int total = totalPriority + totalDaily;
+int completed = completedPriority + completedDaily;
+float percent = total > 0 ? (float)completed / total : 0.f;
+
+RectangleShape progressBg({ 600.f, 20.f });
+progressBg.setPosition({ 400.f, 300.f });
+progressBg.setFillColor(Color(180, 180, 180));
+progressBg.setOutlineThickness(2);
+progressBg.setOutlineColor(Color::Black);
+window.draw(progressBg);
+
+RectangleShape progressFill({ 600.f * percent, 20.f });
+progressFill.setPosition({ 400.f, 300.f });
+progressFill.setFillColor(Color(80, 200, 80));
+window.draw(progressFill);
+
+Text percentText(font);
+percentText.setCharacterSize(18);
+percentText.setFillColor(Color(40, 40, 40));
+percentText.setString(to_string((int)(percent * 100)) + "% completed");
+FloatRect pr = percentText.getLocalBounds();
+percentText.setOrigin({ pr.position.x + pr.size.x / 2.f, pr.position.y + pr.size.y / 2.f });
+percentText.setPosition({ 700.f, 330.f });
+window.draw(percentText);
+
 		for (int i = 0; i < buttons.size(); i++)
 		{
 			window.draw(shadows[i]);
