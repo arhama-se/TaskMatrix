@@ -85,38 +85,6 @@ pq.push(t);
 	return pq;
 }
 
-const string COMPLETED_FILE = "completed_tasks.txt";
-
-void saveCompletedTasks()
-{
-    ofstream fout(COMPLETED_FILE);
-    stack<CompletedTask> temp = priorityCompletedStack;
-    stack<CompletedTask> reversed;
-    while (!temp.empty()) { reversed.push(temp.top()); temp.pop(); }
-    while (!reversed.empty())
-    {
-        CompletedTask ct = reversed.top(); reversed.pop();
-        fout << ct.title << "|" << ct.source << "|" << ct.completedTime << "\n";
-    }
-}
-
-void loadCompletedTasks()
-{
-    ifstream fin(COMPLETED_FILE);
-    string line;
-    while (getline(fin, line))
-    {
-        size_t p1 = line.find('|');
-        size_t p2 = line.rfind('|');
-        if (p1 == string::npos || p2 == string::npos) continue;
-        CompletedTask ct;
-        ct.title = line.substr(0, p1);
-        ct.source = line.substr(p1 + 1, p2 - p1 - 1);
-        ct.completedTime = line.substr(p2 + 1);
-        priorityCompletedStack.push(ct);
-    }
-}
-
 const string DAILY_TASK_FILE = "daily_tasks.txt";
 
 void saveDailyTasks(DailyTask* head)
@@ -178,7 +146,37 @@ struct CompletedTask
 };
 
 stack<CompletedTask> priorityCompletedStack;
+const string COMPLETED_FILE = "completed_tasks.txt";
 
+void saveCompletedTasks()
+{
+    ofstream fout(COMPLETED_FILE);
+    stack<CompletedTask> temp = priorityCompletedStack;
+    stack<CompletedTask> reversed;
+    while (!temp.empty()) { reversed.push(temp.top()); temp.pop(); }
+    while (!reversed.empty())
+    {
+        CompletedTask ct = reversed.top(); reversed.pop();
+        fout << ct.title << "|" << ct.source << "|" << ct.completedTime << "\n";
+    }
+}
+
+void loadCompletedTasks()
+{
+    ifstream fin(COMPLETED_FILE);
+    string line;
+    while (getline(fin, line))
+    {
+        size_t p1 = line.find('|');
+        size_t p2 = line.rfind('|');
+        if (p1 == string::npos || p2 == string::npos) continue;
+        CompletedTask ct;
+        ct.title = line.substr(0, p1);
+        ct.source = line.substr(p1 + 1, p2 - p1 - 1);
+        ct.completedTime = line.substr(p2 + 1);
+        priorityCompletedStack.push(ct);
+    }
+}
 
 void openPriorityTasks();
 void openDailyTasks();
@@ -303,9 +301,9 @@ void openPriorityTasks()
 					if (backBtn.getGlobalBounds().contains(click))
 					{
 						saveTasks(pq);
-                        window.close();
-                        openMainMenu();
-                        return;
+						window.close();
+						openMainMenu();
+						return;
 					}
 
 					if (addBtn.getGlobalBounds().contains(click))
@@ -469,8 +467,8 @@ void openPriorityTasks()
 		for (size_t i = 0; i < tasks.size(); i++)
 		{
 			float y = yStart + i * (barH + spacing) + scrollOffset;
-if (tasks[i].completed) continue;
-if (y < -barH || y > 900) continue;
+
+            if (y < -barH || y > 900) continue;
 			RectangleShape bar({ 1200.f, barH });
 			bar.setPosition({ 100.f, y });
 		    Color taskColor;
@@ -512,13 +510,21 @@ t.setString(label + " " + tasks[i].title + "    (Due: " + tasks[i].date + ")");	
 				tick.setPosition(tickBox.getPosition() + Vector2f(4, -2));
 				window.draw(tick);
 			}
-			else
-			{
-				tickBox.setFillColor(Color::White);
-				window.draw(tickBox);
+		else
+{
+    tickBox.setFillColor(Color::White);
+    window.draw(tickBox);
+}
 
-			}
-
+if (tasks[i].completed)
+{
+    Text tick(font);
+    tick.setString("C");
+    tick.setCharacterSize(22);
+    tick.setFillColor(Color::White);
+    tick.setPosition(tickBox.getPosition() + Vector2f(4, -2));
+    window.draw(tick);
+}
 		
 		}
 
@@ -1426,8 +1432,7 @@ void openCompletedTasks()
 			txt.setCharacterSize(20);
 			txt.setFillColor(Color::Black);
 			txt.setString(
-				"CTS  " + t.title + " | From: " + t.source + " | Completed: " + t.completedTime
-
+                           t.title + " | From: " + t.source + " | Completed: " + t.completedTime
 			);
 			txt.setPosition({ 120.f, y + 25.f });
 
@@ -1774,8 +1779,7 @@ window.draw(percentText);
 
 int main()
 {
-	loadCompletedTasks();
-RenderWindow window(VideoMode({ 1400, 900 }), "TaskMatrix");
+    RenderWindow window(VideoMode({ 1400, 900 }), "TaskMatrix");
 	Color bgColor(245, 240, 230);
 
 	Font font;
@@ -1897,67 +1901,12 @@ bool showExitPopup = false;
 		}
 
 		window.clear(bgColor);
-window.draw(pattern);
-window.draw(title);
-window.draw(btnShadow);
-window.draw(btn);
-window.draw(btnText);
-
-if (showExitPopup)
-{
-    RectangleShape exitPopup({ 400.f, 180.f });
-    exitPopup.setFillColor(Color(220, 220, 220));
-    exitPopup.setOutlineThickness(2);
-    exitPopup.setOutlineColor(Color::Black);
-    exitPopup.setPosition({ 500.f, 360.f });
-    window.draw(exitPopup);
-
-    Text exitMsg(font);
-    exitMsg.setString("Are you sure you want to quit?");
-    exitMsg.setCharacterSize(18);
-    exitMsg.setFillColor(Color::Black);
-    exitMsg.setPosition(exitPopup.getPosition() + Vector2f(30, 25));
-    window.draw(exitMsg);
-
-    RectangleShape yesBtn({ 130.f, 50.f });
-    yesBtn.setPosition(exitPopup.getPosition() + Vector2f(40, 100));
-    yesBtn.setFillColor(Color(200, 80, 80));
-    yesBtn.setOutlineThickness(2);
-    yesBtn.setOutlineColor(Color::Black);
-    window.draw(yesBtn);
-
-    RectangleShape noBtn({ 130.f, 50.f });
-    noBtn.setPosition(exitPopup.getPosition() + Vector2f(220, 100));
-    noBtn.setFillColor(Color(80, 180, 80));
-    noBtn.setOutlineThickness(2);
-    noBtn.setOutlineColor(Color::Black);
-    window.draw(noBtn);
-
-    Text yesText(font);
-    yesText.setString("Yes");
-    yesText.setCharacterSize(22);
-    yesText.setFillColor(Color::White);
-    yesText.setPosition(yesBtn.getPosition() + Vector2f(35, 10));
-    window.draw(yesText);
-
-    Text noText(font);
-    noText.setString("No");
-    noText.setCharacterSize(22);
-    noText.setFillColor(Color::White);
-    noText.setPosition(noBtn.getPosition() + Vector2f(40, 10));
-    window.draw(noText);
-
-    if (Mouse::isButtonPressed(Mouse::Button::Left))
-    {
-        Vector2f mousePos = static_cast<Vector2f>(Mouse::getPosition(window));
-        if (yesBtn.getGlobalBounds().contains(mousePos))
-            window.close();
-        else if (noBtn.getGlobalBounds().contains(mousePos))
-            showExitPopup = false;
-    }
-}
-
-window.display();
+		window.draw(pattern);
+		window.draw(title);
+		window.draw(btnShadow);
+		window.draw(btn);
+		window.draw(btnText);
+		window.display();
 	}
 
 	return 0;
