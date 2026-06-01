@@ -1378,8 +1378,12 @@ void openCompletedTasks()
 
 			RectangleShape bar({ 1200.f, barH });
 			bar.setPosition({ 100.f, y });
-			bar.setFillColor(barColor);
-			bar.setOutlineThickness(2);
+Color taskColor;
+if (tasks[i].priority >= 9) taskColor = Color(220, 80, 80);
+else if (tasks[i].priority >= 6) taskColor = Color(230, 150, 50);
+else if (tasks[i].priority >= 3) taskColor = Color(230, 200, 50);
+else taskColor = Color(80, 180, 80);
+bar.setFillColor(taskColor);			bar.setOutlineThickness(2);
 			bar.setOutlineColor(Color::Black);
 
 			Text txt(font);

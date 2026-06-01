@@ -1,4 +1,1 @@
-bst|12|Today|1|12
-bt|23|Tomorrow|1|23
-stack|31|This Week|1|31
-stack|1|Someday|1|1
+bst|1|This Week|0|
