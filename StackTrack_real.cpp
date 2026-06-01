@@ -59,8 +59,7 @@ void saveTasks(priority_queue<Task, vector<Task>, TaskCompare> pq)
 	{
 		Task t = copy.top();
 		copy.pop();
-		fout << t.title << "|" << t.priority << "|" << t.date << "\n";
-	}
+        fout << t.title << "|" << t.priority << "|" << t.date << "|" << t.completed << "\n";	}
 }
 
 priority_queue<Task, vector<Task>, TaskCompare> loadTasks()
@@ -74,9 +73,13 @@ priority_queue<Task, vector<Task>, TaskCompare> loadTasks()
 		size_t p2 = line.rfind('|');
 		if (p1 == string::npos || p2 == string::npos) continue;
 		string title = line.substr(0, p1);
-		int priority = stoi(line.substr(p1 + 1, p2 - p1 - 1));
-		string date = line.substr(p2 + 1);
-		pq.push(Task(title, priority, date));
+int priority = stoi(line.substr(p1 + 1, p2 - p1 - 1));
+size_t p3 = line.rfind('|');
+string date = line.substr(p2 + 1, p3 - p2 - 1);
+bool completed = line.substr(p3 + 1) == "1";
+Task t(title, priority, date);
+t.completed = completed;
+pq.push(t);
 	}
 
 	return pq;

@@ -1,1 +1,1 @@
-bst|1|This Week|0|
+bst|1|This Week|1|1
