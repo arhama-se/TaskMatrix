@@ -445,8 +445,12 @@ void openPriorityTasks()
 			Text t(font);
 			t.setCharacterSize(22);
 			t.setFillColor(Color::Black);
-			t.setString(string("Priority #") + to_string(tasks[i].priority) + ": " + tasks[i].title + "    (Due: " + tasks[i].date + ")");
-			t.setPosition({ 120.f, y + 14.f });
+string label;
+if (tasks[i].priority >= 9) label = "[URGENT]";
+else if (tasks[i].priority >= 6) label = "[HIGH]";
+else if (tasks[i].priority >= 3) label = "[MEDIUM]";
+else label = "[LOW]";
+t.setString(label + " " + tasks[i].title + "    (Due: " + tasks[i].date + ")");			t.setPosition({ 120.f, y + 14.f });
 
 			window.draw(bar);
 			window.draw(t);
@@ -737,7 +741,7 @@ void openDailyTasks()
 	DailyTask* selectedTask = nullptr;
 
 	float startX = 50.f, startY = 170.f;
-	float boxSize = 400.f;
+	float boxSize = 300.f;
 	float spacingX = 30.f, spacingY = 30.f;
 
 	float scrollOffset = 0.f, maxScroll = 0.f;
