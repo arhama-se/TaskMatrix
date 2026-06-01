@@ -434,13 +434,18 @@ void openPriorityTasks()
 		for (size_t i = 0; i < tasks.size(); i++)
 		{
 			float y = yStart + i * (barH + spacing) + scrollOffset;
-			if (y < -barH || y > 900) continue;
-
+if (tasks[i].completed) continue;
+if (y < -barH || y > 900) continue;
 			RectangleShape bar({ 1200.f, barH });
 			bar.setPosition({ 100.f, y });
-			bar.setFillColor(barColor);
-			bar.setOutlineThickness(2);
-			bar.setOutlineColor(Color::Black);
+		    Color taskColor;
+if (tasks[i].priority >= 9) taskColor = Color(220, 80, 80);
+else if (tasks[i].priority >= 6) taskColor = Color(230, 150, 50);
+else if (tasks[i].priority >= 3) taskColor = Color(230, 200, 50);
+else taskColor = Color(80, 180, 80);
+bar.setFillColor(taskColor);
+bar.setOutlineThickness(2);
+bar.setOutlineColor(Color::Black);
 
 			Text t(font);
 			t.setCharacterSize(22);
@@ -1378,12 +1383,8 @@ void openCompletedTasks()
 
 			RectangleShape bar({ 1200.f, barH });
 			bar.setPosition({ 100.f, y });
-Color taskColor;
-if (tasks[i].priority >= 9) taskColor = Color(220, 80, 80);
-else if (tasks[i].priority >= 6) taskColor = Color(230, 150, 50);
-else if (tasks[i].priority >= 3) taskColor = Color(230, 200, 50);
-else taskColor = Color(80, 180, 80);
-bar.setFillColor(taskColor);			bar.setOutlineThickness(2);
+			bar.setFillColor(barColor);
+     		bar.setOutlineThickness(2);
 			bar.setOutlineColor(Color::Black);
 
 			Text txt(font);
