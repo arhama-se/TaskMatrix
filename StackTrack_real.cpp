@@ -1783,7 +1783,8 @@ int main()
 	btnText.setOrigin({textRect.position.x + textRect.size.x / 2.f, textRect.position.y + textRect.size.y / 2.f});
 	btnText.setPosition(btnPos + btnSize / 2.f);
 
-	bool hover = false;
+bool hover = false;
+bool showExitPopup = false;
 	Vector2f normalScale(1.f, 1.f);
 	Vector2f hoverScale(1.05f, 1.05f);
 	Vector2f shadowOffset(5.f, 5.f);
@@ -1810,7 +1811,9 @@ int main()
 		while (auto event = window.pollEvent())
 		{
 			if (event->is<Event::Closed>())
-				window.close();
+            {
+                showExitPopup = true;
+            }
 
 			if (auto mouse = event->getIf<Event::MouseButtonPressed>())
 			{
@@ -1861,12 +1864,67 @@ int main()
 		}
 
 		window.clear(bgColor);
-		window.draw(pattern);
-		window.draw(title);
-		window.draw(btnShadow);
-		window.draw(btn);
-		window.draw(btnText);
-		window.display();
+window.draw(pattern);
+window.draw(title);
+window.draw(btnShadow);
+window.draw(btn);
+window.draw(btnText);
+
+if (showExitPopup)
+{
+    RectangleShape exitPopup({ 400.f, 180.f });
+    exitPopup.setFillColor(Color(220, 220, 220));
+    exitPopup.setOutlineThickness(2);
+    exitPopup.setOutlineColor(Color::Black);
+    exitPopup.setPosition({ 500.f, 360.f });
+    window.draw(exitPopup);
+
+    Text exitMsg(font);
+    exitMsg.setString("Are you sure you want to quit?");
+    exitMsg.setCharacterSize(18);
+    exitMsg.setFillColor(Color::Black);
+    exitMsg.setPosition(exitPopup.getPosition() + Vector2f(30, 25));
+    window.draw(exitMsg);
+
+    RectangleShape yesBtn({ 130.f, 50.f });
+    yesBtn.setPosition(exitPopup.getPosition() + Vector2f(40, 100));
+    yesBtn.setFillColor(Color(200, 80, 80));
+    yesBtn.setOutlineThickness(2);
+    yesBtn.setOutlineColor(Color::Black);
+    window.draw(yesBtn);
+
+    RectangleShape noBtn({ 130.f, 50.f });
+    noBtn.setPosition(exitPopup.getPosition() + Vector2f(220, 100));
+    noBtn.setFillColor(Color(80, 180, 80));
+    noBtn.setOutlineThickness(2);
+    noBtn.setOutlineColor(Color::Black);
+    window.draw(noBtn);
+
+    Text yesText(font);
+    yesText.setString("Yes");
+    yesText.setCharacterSize(22);
+    yesText.setFillColor(Color::White);
+    yesText.setPosition(yesBtn.getPosition() + Vector2f(35, 10));
+    window.draw(yesText);
+
+    Text noText(font);
+    noText.setString("No");
+    noText.setCharacterSize(22);
+    noText.setFillColor(Color::White);
+    noText.setPosition(noBtn.getPosition() + Vector2f(40, 10));
+    window.draw(noText);
+
+    if (Mouse::isButtonPressed(Mouse::Button::Left))
+    {
+        Vector2f mousePos = static_cast<Vector2f>(Mouse::getPosition(window));
+        if (yesBtn.getGlobalBounds().contains(mousePos))
+            window.close();
+        else if (noBtn.getGlobalBounds().contains(mousePos))
+            showExitPopup = false;
+    }
+}
+
+window.display();
 	}
 
 	return 0;
