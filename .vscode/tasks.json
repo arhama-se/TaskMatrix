@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build TaskMatrix",
+      "type": "shell",
+      "command": "C:/Users/tariq/OneDrive/Desktop/msys64/ucrt64/bin/g++.exe",
+      "args": [
+        "-g",
+        "StackTrack_real.cpp",
+        "-o",
+        "TaskMatrix.exe",
+        "-I", "C:/SFML-mingw/SFML-3.0.0/include",
+        "-L", "C:/SFML-mingw/SFML-3.0.0/lib",
+        "-lsfml-graphics",
+        "-lsfml-window",
+        "-lsfml-system"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
+}

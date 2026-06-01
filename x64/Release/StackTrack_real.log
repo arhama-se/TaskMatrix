@@ -1,0 +1,6 @@
+﻿  StackTrack_real.cpp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 10 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  StackTrack_real.vcxproj -> C:\Users\admin\source\repos\StackTrack_real\x64\Release\StackTrack_real.exe
