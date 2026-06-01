@@ -85,6 +85,38 @@ pq.push(t);
 	return pq;
 }
 
+const string COMPLETED_FILE = "completed_tasks.txt";
+
+void saveCompletedTasks()
+{
+    ofstream fout(COMPLETED_FILE);
+    stack<CompletedTask> temp = priorityCompletedStack;
+    stack<CompletedTask> reversed;
+    while (!temp.empty()) { reversed.push(temp.top()); temp.pop(); }
+    while (!reversed.empty())
+    {
+        CompletedTask ct = reversed.top(); reversed.pop();
+        fout << ct.title << "|" << ct.source << "|" << ct.completedTime << "\n";
+    }
+}
+
+void loadCompletedTasks()
+{
+    ifstream fin(COMPLETED_FILE);
+    string line;
+    while (getline(fin, line))
+    {
+        size_t p1 = line.find('|');
+        size_t p2 = line.rfind('|');
+        if (p1 == string::npos || p2 == string::npos) continue;
+        CompletedTask ct;
+        ct.title = line.substr(0, p1);
+        ct.source = line.substr(p1 + 1, p2 - p1 - 1);
+        ct.completedTime = line.substr(p2 + 1);
+        priorityCompletedStack.push(ct);
+    }
+}
+
 const string DAILY_TASK_FILE = "daily_tasks.txt";
 
 void saveDailyTasks(DailyTask* head)
@@ -271,9 +303,9 @@ void openPriorityTasks()
 					if (backBtn.getGlobalBounds().contains(click))
 					{
 						saveTasks(pq);
-						window.close();
-						openMainMenu();
-						return;
+                        window.close();
+                        openMainMenu();
+                        return;
 					}
 
 					if (addBtn.getGlobalBounds().contains(click))
@@ -1742,7 +1774,8 @@ window.draw(percentText);
 
 int main()
 {
-    RenderWindow window(VideoMode({ 1400, 900 }), "TaskMatrix");
+	loadCompletedTasks();
+RenderWindow window(VideoMode({ 1400, 900 }), "TaskMatrix");
 	Color bgColor(245, 240, 230);
 
 	Font font;
