@@ -643,8 +643,6 @@ void removeDailyTask(DailyTask* taskToRemove)
 	}
 }
 
-
-
 void openDailyTasks()
 {
 	RenderWindow window(VideoMode({ 1400, 900 }), "Daily Tasks");
@@ -676,7 +674,6 @@ void openDailyTasks()
 	Clock clock;
 
 	head = loadDailyTasks();
-	
 
 	RectangleShape backBtn({ 140.f, 50.f });
 	backBtn.setPosition({ 1230.f, 30.f });
@@ -702,47 +699,48 @@ void openDailyTasks()
 	addText.setFillColor(Color::White);
 	addText.setPosition({ 60.f, 105.f });
 
-	RectangleShape addPopup({ 700.f, 320.f });
+	RectangleShape addPopup({ 700.f, 380.f });
 	addPopup.setFillColor(popupColor);
 	addPopup.setOutlineThickness(2);
 	addPopup.setOutlineColor(Color::Black);
-	addPopup.setPosition({ 350.f, 220.f });
+	addPopup.setPosition({ 350.f, 200.f });
 
-	RectangleShape keepRemovePopup({ 360.f, 150.f });
+	RectangleShape keepRemovePopup({ 420.f, 220.f });
 	keepRemovePopup.setFillColor(Color(220, 220, 220));
 	keepRemovePopup.setOutlineThickness(2);
 	keepRemovePopup.setOutlineColor(Color::Black);
-	keepRemovePopup.setPosition({ 520.f, 340.f });
+	keepRemovePopup.setPosition({ 490.f, 300.f });
 
 	RectangleShape titleBox({ 350.f, 35.f });
 	RectangleShape dateBox({ 350.f, 35.f });
-	RectangleShape statusBox({ 350.f, 35.f });
 	titleBox.setFillColor(Color::White);
 	dateBox.setFillColor(Color::White);
-	statusBox.setFillColor(Color::White);
 
-	RectangleShape updateStatusBox({ 260.f, 35.f });
+	string inputTitle, inputDate;
+	string selectedStatus = "Today";
+	string updateSelectedStatus = "Today";
 
-	string inputTitle, inputDate, inputStatus;
-	string updateStatusInput;
+	vector<string> statusOptions = { "Today", "Tomorrow", "This Week", "Someday" };
+	vector<Color> statusColors = {
+		Color(220, 80, 80),
+		Color(230, 150, 50),
+		Color(80, 160, 80),
+		Color(120, 120, 200)
+	};
 
-	enum Focus { NONE, TITLE, DATE, STATUS };
+	enum Focus { NONE, TITLE, DATE };
 	Focus focused = NONE;
 
-	bool statusBoxFocused = false;
 	bool showAddPopup = false;
 	bool showKeepRemove = false;
 
 	DailyTask* selectedTask = nullptr;
 
-	
 	float startX = 50.f, startY = 170.f;
 	float boxSize = 400.f;
 	float spacingX = 30.f, spacingY = 30.f;
 
 	float scrollOffset = 0.f, maxScroll = 0.f;
-
-
 
 	while (window.isOpen())
 	{
@@ -765,29 +763,77 @@ void openDailyTasks()
 				if (mouse->button == Mouse::Button::Left)
 				{
 					Vector2f click(static_cast<float>(mouse->position.x),
-						static_cast<float>(mouse->position.y)
-					);
+						static_cast<float>(mouse->position.y));
 
 					if (backBtn.getGlobalBounds().contains(click))
 					{
 						saveDailyTasks(head);
 						window.close();
 						openMainMenu();
-						return;;
+						return;
 					}
 
-					if (addBtn.getGlobalBounds().contains(click))
+					if (addBtn.getGlobalBounds().contains(click) && !showKeepRemove)
 					{
 						showAddPopup = true;
 						focused = TITLE;
-						
+						inputTitle.clear();
+						inputDate.clear();
+						selectedStatus = "Today";
+					}
+
+					if (showAddPopup)
+					{
+						if (titleBox.getGlobalBounds().contains(click))
+							focused = TITLE;
+						else if (dateBox.getGlobalBounds().contains(click))
+							focused = DATE;
+
+						// status option buttons in add popup
+						for (int i = 0; i < 4; i++)
+						{
+							FloatRect btnRect(
+								addPopup.getPosition() + Vector2f(240 + i * 80.f, 220),
+								{ 70.f, 35.f }
+							);
+							if (btnRect.contains(click))
+								selectedStatus = statusOptions[i];
+						}
+
+						// confirm add
+						FloatRect confirmRect(
+							addPopup.getPosition() + Vector2f(220, 310),
+							{ 200.f, 45.f }
+						);
+						if (confirmRect.contains(click))
+						{
+							if (!inputTitle.empty() && !inputDate.empty())
+							{
+								addDailyTask(inputTitle, inputDate, selectedStatus);
+								inputTitle.clear();
+								inputDate.clear();
+								selectedStatus = "Today";
+								showAddPopup = false;
+								focused = NONE;
+							}
+						}
+
+						// cancel
+						FloatRect cancelRect(
+							addPopup.getPosition() + Vector2f(30, 310),
+							{ 150.f, 45.f }
+						);
+						if (cancelRect.contains(click))
+						{
+							showAddPopup = false;
+							focused = NONE;
+						}
 					}
 
 					if (!showAddPopup && !showKeepRemove)
 					{
 						DailyTask* temp = head;
 						int idx = 0;
-
 
 						while (temp)
 						{
@@ -798,8 +844,6 @@ void openDailyTasks()
 								startX + col * (boxSize + spacingX),
 								startY + row * (boxSize + spacingY) - scrollOffset
 							);
-
-							FloatRect boxRect(boxPos, { boxSize, boxSize });
 
 							FloatRect tickRect(
 								boxPos + Vector2f(boxSize - 45.f, 15.f),
@@ -814,16 +858,15 @@ void openDailyTasks()
 									temp->completedTime = temp->date;
 									dailyCompletedStack.push(temp);
 								}
-
 								break;
 							}
 
+							FloatRect boxRect(boxPos, { boxSize, boxSize });
 							if (boxRect.contains(click))
 							{
 								selectedTask = temp;
 								showKeepRemove = true;
-								statusBoxFocused = false;
-								updateStatusInput = temp->status;
+								updateSelectedStatus = temp->status;
 								break;
 							}
 							temp = temp->next;
@@ -831,41 +874,35 @@ void openDailyTasks()
 						}
 					}
 
-
 					if (showKeepRemove && selectedTask)
 					{
-						updateStatusBox.setPosition(keepRemovePopup.getPosition() + Vector2f(90, 45));
+						// update status buttons in keep/remove popup
+						for (int i = 0; i < 4; i++)
+						{
+							FloatRect btnRect(
+								keepRemovePopup.getPosition() + Vector2f(10 + i * 100.f, 80),
+								{ 90.f, 35.f }
+							);
+							if (btnRect.contains(click))
+								updateSelectedStatus = statusOptions[i];
+						}
 
-						if (updateStatusBox.getGlobalBounds().contains(click))
-							statusBoxFocused = true;
-						else 
-							statusBoxFocused = false;
-
-
-						FloatRect keepBtnRect(keepRemovePopup.getPosition() + Vector2f(40, 95), Vector2f(130, 50));
+						FloatRect keepBtnRect(keepRemovePopup.getPosition() + Vector2f(40, 140), Vector2f(150, 50));
 						if (keepBtnRect.contains(click))
 						{
-							if (!updateStatusInput.empty())
-								selectedTask->status = updateStatusInput;
-
-							updateStatusInput.clear();
-							statusBoxFocused = false;
+							selectedTask->status = updateSelectedStatus;
 							selectedTask = nullptr;
 							showKeepRemove = false;
 						}
 
-						FloatRect removeBtnRect(keepRemovePopup.getPosition() + Vector2f(190, 95), Vector2f(130, 50));
-					    if (removeBtnRect.contains(click))
+						FloatRect removeBtnRect(keepRemovePopup.getPosition() + Vector2f(220, 140), Vector2f(150, 50));
+						if (removeBtnRect.contains(click))
 						{
 							DailyTask* toDelete = selectedTask;
 							selectedTask = nullptr;
 							showKeepRemove = false;
-							statusBoxFocused = false;
-							updateStatusInput.clear();
-
 							removeDailyTask(toDelete);
 						}
-
 					}
 				}
 			}
@@ -879,32 +916,16 @@ void openDailyTasks()
 				int totalRows = (taskCount + 2) / 3;
 				int totalHeight = startY + totalRows * (boxSize + spacingY);
 				maxScroll = max(0.f, totalHeight - 900.f);
-
 				scrollOffset = max(-maxScroll, min(0.f, scrollOffset));
 			}
 
 			if (auto text = event->getIf<Event::TextEntered>())
 			{
-				if (showAddPopup)
+				if (showAddPopup && text->unicode >= 32 && text->unicode <= 126)
 				{
-					if (text->unicode >= 32 && text->unicode <= 126)
-					{
-						char c = static_cast<char>(text->unicode);
-						if (focused == TITLE) inputTitle += c;
-						else if (focused == DATE) inputDate += c;
-						else if (focused == STATUS) inputStatus += c;
-					}
-
-				}
-				
-				else if (showKeepRemove && statusBoxFocused)
-				{
-					if (text->unicode >= 32 && text->unicode <= 126)
-					{
-						char c = static_cast<char>(text->unicode);
-						updateStatusInput += c;
-					}
-					
+					char c = static_cast<char>(text->unicode);
+					if (focused == TITLE) inputTitle += c;
+					else if (focused == DATE) inputDate += c;
 				}
 			}
 
@@ -914,32 +935,13 @@ void openDailyTasks()
 				{
 					if (key->code == Keyboard::Key::Backspace)
 					{
-						if (focused == TITLE && !inputTitle.empty())
-							inputTitle.pop_back();
-
-						else if (focused == DATE && !inputDate.empty())
-							inputDate.pop_back();
-
-						else if (focused == STATUS && !inputStatus.empty())
-							inputStatus.pop_back();
+						if (focused == TITLE && !inputTitle.empty()) inputTitle.pop_back();
+						else if (focused == DATE && !inputDate.empty()) inputDate.pop_back();
 					}
 					else if (key->code == Keyboard::Key::Tab)
 					{
 						if (focused == TITLE) focused = DATE;
-						else if (focused == DATE) focused = STATUS;
-						else if (focused == STATUS) focused = TITLE;
-					}
-					else if (key->code == Keyboard::Key::Enter )
-					{
-						if (!inputTitle.empty() && !inputDate.empty() && !inputStatus.empty())
-						{
-							addDailyTask(inputTitle, inputDate, inputStatus);
-							inputTitle.clear();
-							inputDate.clear();
-							inputStatus.clear();
-							showAddPopup = false;
-							focused = NONE;
-						}
+						else if (focused == DATE) focused = TITLE;
 					}
 					else if (key->code == Keyboard::Key::Escape)
 					{
@@ -947,17 +949,8 @@ void openDailyTasks()
 						focused = NONE;
 					}
 				}
-				else if (showKeepRemove && statusBoxFocused)
-				{
-					if (key->code == Keyboard::Key::Backspace && !updateStatusInput.empty())
-					{
-						updateStatusInput.pop_back();
-					}
-				}
 			}
 		}
-
-		
 
 		window.clear(bgColor);
 		window.draw(bgSprite);
@@ -968,25 +961,34 @@ void openDailyTasks()
 
 		DailyTask* temp = head;
 		int idx = 0;
-		int taskCount = 0;
 
 		while (temp)
 		{
 			int col = idx % 3;
 			int row = idx / 3;
 
+			Vector2f boxPos(
+				startX + col * (boxSize + spacingX),
+				startY + row * (boxSize + spacingY) - scrollOffset
+			);
+
 			RectangleShape box(Vector2f(boxSize, boxSize));
-			box.setPosition({ startX + col * (boxSize + spacingX),
-				startY + row * (boxSize + spacingY) - scrollOffset });
+			box.setPosition(boxPos);
 			box.setFillColor(boxColor);
 			box.setOutlineThickness(2.f);
 			box.setOutlineColor(Color::Black);
 			window.draw(box);
 
-			Vector2f boxPos(
-				startX + col * (boxSize + spacingY),
-				startY + row * (boxSize + spacingY) - scrollOffset
-			);
+			// status color bar at top of card
+			Color cardBarColor = statusColors[0];
+			for (int i = 0; i < 4; i++)
+				if (temp->status == statusOptions[i])
+					cardBarColor = statusColors[i];
+
+			RectangleShape statusBar({ boxSize, 12.f });
+			statusBar.setPosition(boxPos);
+			statusBar.setFillColor(cardBarColor);
+			window.draw(statusBar);
 
 			RectangleShape tickBox({ 28.f, 28.f });
 			tickBox.setPosition(boxPos + Vector2f(boxSize - 45.f, 15.f));
@@ -1010,24 +1012,36 @@ void openDailyTasks()
 			t.setFillColor(Color::White);
 
 			t.setString("Title: " + temp->title);
-			t.setPosition(box.getPosition() + Vector2f(15, 30));
+			t.setPosition(boxPos + Vector2f(15, 30));
 			window.draw(t);
 
 			t.setString("Date: " + temp->date);
-			t.setPosition(box.getPosition() + Vector2f(15, 70));
+			t.setPosition(boxPos + Vector2f(15, 70));
 			window.draw(t);
 
-			t.setString("Status: " + temp->status);
-			t.setPosition(box.getPosition() + Vector2f(15, 120));
-			window.draw(t);
+			// status badge
+			Color badgeColor = statusColors[0];
+			for (int i = 0; i < 4; i++)
+				if (temp->status == statusOptions[i])
+					badgeColor = statusColors[i];
 
-			taskCount++;
+			RectangleShape badge({ 160.f, 32.f });
+			badge.setPosition(boxPos + Vector2f(15, 115));
+			badge.setFillColor(badgeColor);
+			badge.setOutlineThickness(1);
+			badge.setOutlineColor(Color::Black);
+			window.draw(badge);
+
+			Text statusTxt(font);
+			statusTxt.setString(temp->status);
+			statusTxt.setCharacterSize(18);
+			statusTxt.setFillColor(Color::White);
+			statusTxt.setPosition(boxPos + Vector2f(20, 120));
+			window.draw(statusTxt);
+
 			temp = temp->next;
 			idx++;
-
 		}
-
-		
 
 		if (showAddPopup)
 		{
@@ -1035,21 +1049,14 @@ void openDailyTasks()
 
 			titleBox.setPosition(addPopup.getPosition() + Vector2f(240, 40));
 			dateBox.setPosition(addPopup.getPosition() + Vector2f(240, 130));
-			statusBox.setPosition(addPopup.getPosition() + Vector2f(240, 220));
+
+			titleBox.setOutlineThickness(focused == TITLE ? 2.f : 1.f);
+			titleBox.setOutlineColor(Color::Black);
+			dateBox.setOutlineThickness(focused == DATE ? 2.f : 1.f);
+			dateBox.setOutlineColor(Color::Black);
 
 			window.draw(titleBox);
 			window.draw(dateBox);
-			window.draw(statusBox);
-
-			titleBox.setOutlineThickness(focused == TITLE ? 2.f : 0.f);
-			titleBox.setOutlineColor(Color::Black);
-
-			dateBox.setOutlineThickness(focused == DATE ? 2.f : 0.f);
-			dateBox.setOutlineColor(Color::Black);
-			
-			statusBox.setOutlineThickness(focused == STATUS ? 2.f : 0.f);
-			statusBox.setOutlineColor(Color::Black);
-			
 
 			Text l(font);
 			l.setCharacterSize(22);
@@ -1063,14 +1070,14 @@ void openDailyTasks()
 			l.setPosition(addPopup.getPosition() + Vector2f(30, 140));
 			window.draw(l);
 
-			l.setString("Status");
-			l.setPosition(addPopup.getPosition() + Vector2f(30, 230));
+			l.setString("Deadline:");
+			l.setCharacterSize(20);
+			l.setPosition(addPopup.getPosition() + Vector2f(30, 228));
 			window.draw(l);
 
 			Text in(font);
 			in.setCharacterSize(22);
 			in.setFillColor(Color::Black);
-
 			in.setString(inputTitle);
 			in.setPosition(titleBox.getPosition() + Vector2f(8, 6));
 			window.draw(in);
@@ -1079,10 +1086,53 @@ void openDailyTasks()
 			in.setPosition(dateBox.getPosition() + Vector2f(8, 6));
 			window.draw(in);
 
-			in.setString(inputStatus);
-			in.setPosition(statusBox.getPosition() + Vector2f(8, 6));
-			window.draw(in);
-				
+			// status option buttons
+			for (int i = 0; i < 4; i++)
+			{
+				RectangleShape optBtn({ 70.f, 35.f });
+				optBtn.setPosition(addPopup.getPosition() + Vector2f(240 + i * 80.f, 220));
+				optBtn.setFillColor(selectedStatus == statusOptions[i] ? statusColors[i] : Color(180, 180, 180));
+				optBtn.setOutlineThickness(2);
+				optBtn.setOutlineColor(selectedStatus == statusOptions[i] ? Color::Black : Color::Transparent);
+				window.draw(optBtn);
+
+				Text optTxt(font);
+				optTxt.setString(statusOptions[i].substr(0, 4));
+				optTxt.setCharacterSize(14);
+				optTxt.setFillColor(Color::White);
+				optTxt.setPosition(optBtn.getPosition() + Vector2f(5, 8));
+				window.draw(optTxt);
+			}
+
+			// confirm button
+			RectangleShape confirmBtn({ 200.f, 45.f });
+			confirmBtn.setPosition(addPopup.getPosition() + Vector2f(220, 310));
+			confirmBtn.setFillColor(Color(80, 160, 80));
+			confirmBtn.setOutlineThickness(2);
+			confirmBtn.setOutlineColor(Color::Black);
+			window.draw(confirmBtn);
+
+			Text confirmTxt(font);
+			confirmTxt.setString("Add Task");
+			confirmTxt.setCharacterSize(20);
+			confirmTxt.setFillColor(Color::White);
+			confirmTxt.setPosition(confirmBtn.getPosition() + Vector2f(35, 10));
+			window.draw(confirmTxt);
+
+			// cancel button
+			RectangleShape cancelBtn({ 150.f, 45.f });
+			cancelBtn.setPosition(addPopup.getPosition() + Vector2f(30, 310));
+			cancelBtn.setFillColor(Color(200, 80, 80));
+			cancelBtn.setOutlineThickness(2);
+			cancelBtn.setOutlineColor(Color::Black);
+			window.draw(cancelBtn);
+
+			Text cancelTxt(font);
+			cancelTxt.setString("Cancel");
+			cancelTxt.setCharacterSize(20);
+			cancelTxt.setFillColor(Color::White);
+			cancelTxt.setPosition(cancelBtn.getPosition() + Vector2f(25, 10));
+			window.draw(cancelTxt);
 		}
 
 		if (showKeepRemove && selectedTask)
@@ -1090,64 +1140,61 @@ void openDailyTasks()
 			window.draw(keepRemovePopup);
 
 			Text msg(font);
-			msg.setString("Update Status or Remove?");
-			msg.setPosition(keepRemovePopup.getPosition() + Vector2f(50, 20));
-			msg.setCharacterSize(12);
-			msg.setFillColor(Color::Blue);
+			msg.setString("Change Deadline or Remove?");
+			msg.setPosition(keepRemovePopup.getPosition() + Vector2f(30, 20));
+			msg.setCharacterSize(16);
+			msg.setFillColor(Color::Black);
 			window.draw(msg);
 
-			Text statusLabel(font);
-			statusLabel.setString("St:");
-			statusLabel.setPosition(keepRemovePopup.getPosition() + Vector2f(30, 50));
-			statusLabel.setCharacterSize(18);
-			statusLabel.setFillColor(Color::Black);
-			window.draw(statusLabel);
+			// status option buttons in popup
+			for (int i = 0; i < 4; i++)
+			{
+				RectangleShape optBtn({ 90.f, 35.f });
+				optBtn.setPosition(keepRemovePopup.getPosition() + Vector2f(10 + i * 100.f, 80));
+				optBtn.setFillColor(updateSelectedStatus == statusOptions[i] ? statusColors[i] : Color(180, 180, 180));
+				optBtn.setOutlineThickness(2);
+				optBtn.setOutlineColor(updateSelectedStatus == statusOptions[i] ? Color::Black : Color::Transparent);
+				window.draw(optBtn);
 
-			updateStatusBox.setFillColor(Color::White);
-			updateStatusBox.setOutlineThickness(statusBoxFocused ? 2.f : 1.f);
-			updateStatusBox.setOutlineColor(statusBoxFocused ? Color(100, 150, 140) : Color::Black);
-			updateStatusBox.setPosition(keepRemovePopup.getPosition() + Vector2f(90, 45));
-			window.draw(updateStatusBox);
+				Text optTxt(font);
+				optTxt.setString(statusOptions[i].substr(0, 5));
+				optTxt.setCharacterSize(14);
+				optTxt.setFillColor(Color::White);
+				optTxt.setPosition(optBtn.getPosition() + Vector2f(5, 8));
+				window.draw(optTxt);
+			}
 
-			Text statusText(font);
-			statusText.setString(updateStatusInput);
-			statusText.setPosition(updateStatusBox.getPosition() + Vector2f(6, 6));
-			statusText.setCharacterSize(18);
-			statusText.setFillColor(Color::Black);
-			window.draw(statusText);
-
-			RectangleShape keepBtn({ 130, 50 });
-			keepBtn.setPosition(keepRemovePopup.getPosition() + Vector2f(40, 95));
+			RectangleShape keepBtn({ 150, 50 });
+			keepBtn.setPosition(keepRemovePopup.getPosition() + Vector2f(40, 140));
 			keepBtn.setFillColor(Color(100, 200, 100));
 			keepBtn.setOutlineThickness(2);
 			keepBtn.setOutlineColor(Color::Black);
 			window.draw(keepBtn);
 
-			RectangleShape removeBtn({ 130, 50 });
-			removeBtn.setPosition(keepRemovePopup.getPosition() + Vector2f(190, 95));
+			RectangleShape removeBtn({ 150, 50 });
+			removeBtn.setPosition(keepRemovePopup.getPosition() + Vector2f(220, 140));
 			removeBtn.setFillColor(Color(200, 100, 100));
 			removeBtn.setOutlineThickness(2);
 			removeBtn.setOutlineColor(Color::Black);
 			window.draw(removeBtn);
 
 			Text keepText(font);
-			keepText.setString("Keep");
-			keepText.setPosition(keepBtn.getPosition() + Vector2f(20, 10));
+			keepText.setString("Save");
+			keepText.setPosition(keepBtn.getPosition() + Vector2f(40, 10));
 			keepText.setCharacterSize(20);
 			keepText.setFillColor(Color::White);
 			window.draw(keepText);
 
 			Text removeText(font);
 			removeText.setString("Remove");
-			removeText.setPosition(removeBtn.getPosition() + Vector2f(10, 10));
+			removeText.setPosition(removeBtn.getPosition() + Vector2f(25, 10));
 			removeText.setCharacterSize(20);
 			removeText.setFillColor(Color::White);
 			window.draw(removeText);
-
 		}
+
 		window.display();
 	}
-		
 }
 
 void openCompletedTasks()
